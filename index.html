@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nanny Report Prototype</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+/* Layout: guide panel on the left, one interactive phone on the right; stacks on narrow screens. Single light look by choice (the app itself is light). */
+:root{
+  --page:#EFECE6; --cream:#FBF9F5; --card:#FFFFFF; --ink:#434343; --ink2:#7a7570; --line:#E3DED6;
+  --yellow:#F7CD3D; --y10:#FEF6DC; --warn:#E8962A; --prem:#D0021B; --link:#2F6FDE;
+  --font:"DM Sans", "Helvetica Neue", Arial, sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--page);color:var(--ink);font-family:var(--font);margin:0}
+.wrap{display:flex;gap:40px;justify-content:center;align-items:flex-start;padding-inline:16px;padding-block:28px;flex-wrap:wrap}
+.guide{width:340px;max-width:100%;min-width:0}
+.guide h1{font-size:26px;line-height:1.2;margin:0 0 6px;text-wrap:balance}
+.guide p{font-size:14px;line-height:1.5;color:var(--ink2);margin:0 0 16px}
+.ctl{background:var(--card);border-radius:16px;padding:14px 16px;margin-bottom:14px}
+.ctl h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin:0 0 10px;color:var(--ink2)}
+.seg{display:inline-flex;background:var(--cream);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{font:500 13px var(--font);border:0;background:transparent;color:var(--ink);padding:7px 14px;border-radius:999px;cursor:pointer}
+.seg button.on{background:var(--ink);color:#fff}
+.legend{display:flex;flex-direction:column;gap:8px;font-size:13px}
+.legend span{display:flex;align-items:center;gap:8px}
+.sw{width:28px;height:16px;border-radius:5px;border:1.5px solid var(--ink);background:#fff}
+.sw.p{border-color:var(--prem)}
+.try{font-size:13px;line-height:1.6;margin:0;padding-left:18px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+
+/* phone */
+.phone{width:375px;max-width:100%;height:780px;background:var(--cream);border:10px solid #1f1f1f;border-radius:44px;overflow:hidden;position:relative;box-shadow:0 20px 50px rgba(0,0,0,.18)}
+.screen{position:absolute;inset:0;overflow-y:auto;padding:16px 16px 28px}
+.screen::-webkit-scrollbar{display:none}
+.top{display:flex;align-items:center;justify-content:space-between;margin:4px 0 12px}
+.top h3{font-size:19px;margin:0}
+.back{border:0;background:none;font:500 15px var(--font);color:var(--ink);cursor:pointer;padding:4px 0;display:flex;gap:6px;align-items:center}
+.days{display:flex;justify-content:space-between;margin-bottom:12px}
+.days div{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--ink2)}
+.days b{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--ink);font-weight:500}
+.days .on b{background:var(--yellow);font-weight:700}
+.chips{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.chip{font:500 13px var(--font);border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:6px 13px;cursor:pointer}
+.chip.on{background:var(--y10);border-color:var(--yellow);font-weight:700}
+.lbl{font-size:13px;font-weight:700;margin:16px 0 8px;display:flex;justify-content:space-between;align-items:center}
+.lbl small{font-weight:400;color:var(--ink2);font-size:11px}
+.vid{background:#d9d3c8;border-radius:14px;height:150px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;cursor:pointer}
+.vid:after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,#cfc6b8,#e6dfd3 60%,#d4cbbd)}
+.play{position:relative;z-index:1;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center}
+.play:before{content:"";border-left:14px solid var(--ink);border-top:9px solid transparent;border-bottom:9px solid transparent;margin-left:4px}
+.summary{background:#fff;border-radius:0 0 14px 14px;margin-top:-10px;padding:16px 12px 10px;font-size:12.5px;line-height:1.45}
+.hl{display:flex;gap:8px}
+.hl .vid{height:74px;flex:1}
+.hl .play{width:28px;height:28px}.hl .play:before{border-left-width:9px;border-top-width:6px;border-bottom-width:6px}
+.card{background:#fff;border-radius:16px;padding:12px}
+.ins{background:var(--y10);border:1.5px solid var(--yellow);border-radius:16px;padding:12px;font-size:13px;line-height:1.45}
+.ins h4{margin:0 0 6px;font-size:14px}
+.pline{border:1.5px solid var(--prem);background:#fff;border-radius:10px;padding:8px 9px;margin-top:8px;display:flex;gap:8px}
+.tag{font-size:9.5px;font-weight:700;letter-spacing:.05em;color:#fff;background:var(--prem);border-radius:4px;padding:2px 5px;align-self:flex-start;white-space:nowrap}
+.lock{border:1.5px dashed var(--prem);border-radius:10px;padding:8px 9px;margin-top:8px;font-size:12px;display:flex;justify-content:space-between;gap:8px;align-items:center;cursor:pointer;background:#fff}
+.lock b{color:var(--prem);white-space:nowrap}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ev{background:#fff;border-radius:14px;padding:10px;border:0;text-align:left;font-family:var(--font);color:var(--ink);cursor:pointer;min-width:0}
+.ev:hover{box-shadow:inset 0 0 0 1.5px var(--line)}
+.ev .n{font-size:13px;font-weight:700}
+.ev .v{font-size:12px;margin-top:2px}.ev .v b{font-size:17px}
+.ev .s{font-size:11px;color:var(--ink2);margin-top:1px}
+.ev .s.w{color:var(--warn);font-weight:700}
+.bars{display:flex;align-items:flex-end;gap:4px;height:34px;margin-top:6px;position:relative}
+.bars i{flex:1;background:#E3DED6;border-radius:3px 3px 0 0;min-height:2px}
+.bars i.t{background:var(--ink)}.bars i.t.w{background:var(--warn)}
+.bars .avg{position:absolute;left:0;right:0;border-top:1.5px dashed var(--ink2)}
+.new{font-size:9px;font-weight:700;background:var(--yellow);border-radius:4px;padding:1px 4px;margin-left:4px;vertical-align:2px}
+.prem{border:1.5px solid var(--prem);border-radius:16px;background:#fff;padding:12px;margin-top:14px}
+.prem .hd{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:14px;margin-bottom:8px}
+.inp{display:flex;gap:6px}
+.inp input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:9px 10px;font:14px var(--font);background:var(--cream);color:var(--ink)}
+.btn{font:700 14px var(--font);border:0;border-radius:12px;padding:11px 14px;cursor:pointer;background:var(--yellow);color:var(--ink);width:100%}
+.btn.sm{width:auto;padding:9px 12px;font-size:13px}
+.btn.out{background:#fff;border:1.5px solid var(--ink)}
+.rowlink{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-top:8px;color:var(--ink2)}
+.rowlink button{border:0;background:none;font:700 13px var(--font);color:var(--ink);cursor:pointer}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px}
+.tabs::-webkit-scrollbar{display:none}
+.big{font-size:28px;font-weight:700}
+.chart{display:flex;align-items:flex-end;gap:6px;height:150px;position:relative;margin-top:12px}
+.chart i{flex:1;background:#E3DED6;border-radius:4px 4px 0 0}
+.chart i.t{background:var(--ink)}.chart i.t.w{background:var(--warn)}
+.chart .avg{position:absolute;left:0;right:0;border-top:1.5px dashed var(--ink2)}
+.chart .avg span{position:absolute;right:0;top:-16px;font-size:10px;color:var(--ink2)}
+.xl{display:flex;justify-content:space-between;font-size:10px;color:var(--ink2);margin-top:4px}
+.later{font-size:11px;color:var(--ink2);margin-top:8px}
+.link{display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:12px;background:#fff;border:1.5px dashed var(--ink);border-radius:14px;padding:12px;font:700 13px var(--font);color:var(--ink);cursor:pointer}
+.tip{font-size:12px;color:var(--ink2);margin-top:8px}
+.scale{display:flex;gap:4px;margin:8px 0 4px}
+.scale i{flex:1;height:8px;border-radius:4px;background:#EEE9E1;position:relative}
+.scale i.on{background:#e8e2d8}
+.scale i.on:after{content:"";position:absolute;top:-4px;left:calc(50% - 8px);width:16px;height:16px;border-radius:50%;background:var(--ink)}
+.scale i.on.lo:after{left:15%}.scale i.on.hi:after{left:70%}
+.sl{display:flex;justify-content:space-between;font-size:10px;color:var(--ink2)}
+.bm{padding:8px 0;border-bottom:1px solid var(--line)}
+.bm:last-child{border:0}
+.bm .r{display:flex;justify-content:space-between;font-size:13px;font-weight:700}
+.loglist .it{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+.loglist .it b{width:62px;flex:none}
+.loglist .it .src{font-size:10px;color:var(--ink2);display:block}
+.sheetbg{position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;z-index:5}
+.sheet{background:#fff;width:100%;border-radius:28px 28px 0 0;padding:20px 18px 26px;animation:up .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.sheet{animation:none}}
+.sheet h4{margin:0 0 4px;font-size:17px}
+.opt{display:flex;justify-content:space-between;align-items:center;width:100%;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:11px 12px;margin-top:8px;font:500 14px var(--font);color:var(--ink);cursor:pointer}
+.opt.on{border-color:var(--ink);font-weight:700}
+.opt .rb{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--ink)}
+.opt.on .rb{background:var(--ink);box-shadow:inset 0 0 0 3px #fff}
+.brief .sec{padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.45}
+.brief .sec b{display:block}
+.flag{font-weight:700}
+.muted{color:var(--ink2);font-size:12px}
+.toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:13px;padding:9px 14px;border-radius:999px;z-index:9;white-space:nowrap}
+.vh{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.vh .c{background:#fff;border-radius:12px;overflow:hidden;font-size:11px}
+.vh .c .vid{height:86px;border-radius:0}
+.vh .c div.t{padding:6px 8px}
+.hidep .premonly{display:none!important}
+</style>
+
+<div class="wrap">
+  <div class="guide">
+    <h1>Nanny Report prototype</h1>
+    <p>Click through the new report. Content is example data for a dog named Archie (Maltipoo, 3) and a cat named Luna.</p>
+    <div class="ctl">
+      <h2>View as</h2>
+      <div class="seg" role="group" aria-label="Plan">
+        <button id="planStd" type="button">Standard</button>
+        <button id="planPrem" type="button" class="on">Premium</button>
+      </div>
+    </div>
+    <div class="ctl">
+      <h2>Legend</h2>
+      <div class="legend">
+        <span><i class="sw"></i>All Nanny users</span>
+        <span><i class="sw p"></i>Premium only (red outline)</span>
+        <span><i class="new" style="margin:0">NEW</i>New vs. today's live report</span>
+      </div>
+    </div>
+    <div class="ctl">
+      <h2>Things to try</h2>
+      <ol class="try">
+        <li>Switch pets: All pets / Archie / Luna</li>
+        <li>Tap an event card, then switch tabs and 7 / 30 days</li>
+        <li>Open the clips in Video History</li>
+        <li>Add a note, then generate a Vet Brief</li>
+        <li>Switch to Standard to see what's locked</li>
+      </ol>
+    </div>
+  </div>
+  <div class="phone" id="phone"><div class="screen" id="screen"></div></div>
+</div>
+
+<script>
+const S = { plan: "prem", pet: "all", screen: "home", ev: "drink", range: 7, period: 14, sheet: null, toast: "",
+  notes: [ {d:"Oct 15", t:"Ate less at dinner, seemed tired"}, {d:"Oct 12", t:"Weight 6.8 kg"}, {d:"Oct 10", t:"Started joint supplement"} ] };
+
+const EV = {
+  activity:{n:"Activity", unit:"", days:[290,310,280,305,300,295], today:318, avg:305, warn:false, s:"≈ usual", isNew:false, bm:"mid", bmTxt:"Typical",
+    sug:"Activity is in a healthy range. Keep the usual walk and play routine."},
+  bark:{n:"Bark", unit:"", days:[16,13,18,15,15,14], today:12, avg:15, warn:false, s:"≈ usual", isNew:false, bm:"mid", bmTxt:"Typical",
+    sug:"Barking is a bit below his usual. Nothing to do."},
+  eat:{n:"Eat", unit:"×", days:[2,2,2,3,2,2], today:2, avg:2.2, warn:false, s:"≈ usual", isNew:true, bm:"mid", bmTxt:"Typical",
+    sug:"Eating looks normal for Archie and for Maltipoos his age."},
+  drink:{n:"Drink", unit:"×", days:[5,4,5,4,4,4], today:3, avg:4.3, warn:true, s:"↓ 30% vs last 7 days", isNew:true, bm:"lo", bmTxt:"Below typical",
+    sug:"Drinking has dropped for 2 days. Check the water bowl and offer fresh water. If it lasts 3+ days, mention it to your vet."},
+  potty:{n:"Potty", unit:"×", days:[4,5,4,4,4,5], today:4, avg:4.3, warn:false, s:"≈ usual", isNew:true, bm:"mid", bmTxt:"Typical",
+    sug:"Potty breaks are steady. Nothing to do."},
+  vomit:{n:"Vomit", unit:"", days:[0,0,0,0,0,0], today:1, avg:0, warn:true, s:"Possible event 2:14 PM", isNew:true, bm:"hi", bmTxt:"More than typical",
+    sug:"One possible vomit today. Watch the clip to check. If it happens again within 24 hours, call your vet."}
+};
+const ORDER = ["activity","bark","drink","eat","potty","vomit"];
+const PETS = { all:"All pets", archie:"Archie", luna:"Luna" };
+
+const $ = (s)=>document.querySelector(s);
+const esc = (t)=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const isPrem = ()=>S.plan==="prem";
+
+function bars(e, big){
+  const vals=[...e.days,e.today]; const max=Math.max(...vals,e.avg,1)*1.15;
+  const avgPos = e.avg? (100-(e.avg/max*100)) : null;
+  const cls = big? "chart":"bars";
+  return `<div class="${cls}">${vals.map((v,i)=>`<i class="${i===vals.length-1?"t"+(e.warn?" w":""):""}" style="height:${Math.max(v/max*100,2)}%"></i>`).join("")}
+    ${avgPos!==null?`<div class="avg" style="top:${avgPos}%">${big?"<span>7-day avg</span>":""}</div>`:""}</div>`;
+}
+function bars30(e){
+  const vals=[]; for(let i=0;i<29;i++){ vals.push(e.days[i%6]+((i*7)%3-1)*(e.avg>10?8:0.5)); } vals.push(e.today);
+  const max=Math.max(...vals,1)*1.15;
+  return `<div class="chart" style="gap:2px">${vals.map((v,i)=>`<i class="${i===29?"t"+(e.warn?" w":""):""}" style="height:${Math.max(v/max*100,2)}%"></i>`).join("")}
+    ${e.avg?`<div class="avg" style="top:${100-e.avg/max*100}%"><span>30-day avg</span></div>`:""}</div>`;
+}
+
+function insight(){
+  if(S.pet==="luna") return `<div class="ins"><h4>Health insight <span class="new">NEW</span></h4>
+    <div>All looks usual for Luna today.</div>
+    ${isPrem()?`<div class="pline premonly"><span class="tag">PREMIUM</span><span>Luna's activity is typical for indoor cats aged 4–6.</span></div>`:lockLine("See how Luna compares with cats her age")}</div>`;
+  return `<div class="ins"><h4>Health insight <span class="new">NEW</span></h4>
+    <div>Archie drank <b>30% less</b> than his last 7 days, and had <b>1 possible vomit</b> at 2:14 PM.</div>
+    ${isPrem()?`<div class="pline"><span class="tag">PREMIUM</span><span>That's below typical for Maltipoos aged 2–4. Keep fresh water nearby; if it lasts 3+ days, log it for your vet.</span></div>`:lockLine("See how Archie compares with Maltipoos his age")}</div>`;
+}
+function lockLine(t){ return `<div class="lock" data-act="upgrade"><span>🔒 ${t}</span><b>Premium</b></div>`; }
+
+function home(){
+  const lunaAdj = S.pet==="luna";
+  return `<div class="top"><h3>Nanny Report</h3><span class="muted">Oct 16</span></div>
+  <div class="days">${["T","F","S","S","M","T","W"].map((d,i)=>`<div class="${i===6?"on":""}">${d}<b>${10+i}</b></div>`).join("")}</div>
+  <div class="chips">${Object.keys(PETS).map(k=>`<button class="chip ${S.pet===k?"on":""}" data-pet="${k}">${PETS[k]}</button>`).join("")}<span class="new" style="align-self:center">NEW</span></div>
+  <div class="lbl" style="margin-top:0">Daily Diary</div>
+  <div class="vid" data-act="toast" data-msg="Plays the 60-sec Daily Diary"><span class="play"></span></div>
+  <div class="summary"><b>Summary</b> · ${lunaAdj?"Luna spent the morning on the window perch and napped most of the afternoon.":"Archie had a calm day. He played after lunch and napped by the window."}</div>
+  <div class="lbl">Video Highlights</div>
+  <div class="hl">${[1,2,3].map(()=>`<div class="vid" data-act="toast" data-msg="Plays the highlight clip"><span class="play"></span></div>`).join("")}</div>
+  <div class="lbl">Health</div>
+  ${insight()}
+  <div class="lbl">Today vs. last 7 days <small>tap a card for more</small></div>
+  <div class="grid">${ORDER.filter(k=>!(S.pet==="all"&&false)).map(k=>{const e=EV[k]; const warn = lunaAdj?false:e.warn; const ee = lunaAdj?{...e,warn:false,today:k==="vomit"?0:e.days[0],s:k==="bark"?"Meow · ≈ usual":"≈ usual"}:e;
+    const nm = lunaAdj&&k==="bark"?"Meow":e.n;
+    return `<button class="ev" data-ev="${k}"><div class="n">${nm}${e.isNew?'<span class="new">NEW</span>':""}</div>
+      <div class="v"><b>${ee.today}${e.unit}</b> · avg ${e.avg}${e.unit}</div><div class="s ${warn?"w":""}">${ee.s}</div>${bars(ee,false)}</button>`}).join("")}</div>
+  <div class="muted" style="margin-top:6px">New events (anxiety, licking) arrive as new cards.</div>
+  ${isPrem()?`<div class="prem"><div class="hd">Health log & Vet Brief <span class="tag">PREMIUM</span></div>
+    <div class="inp"><input id="quickNote" placeholder="Add a note about Archie today…" aria-label="Quick note"><button class="btn sm" data-act="addQuick">Add</button></div>
+    <div class="rowlink"><span>${S.notes.length} notes this month</span><button data-go="log">Open log & Vet Brief →</button></div></div>`
+  :`<div class="prem" data-act="upgrade" style="cursor:pointer"><div class="hd">Health log & Vet Brief <span class="tag">PREMIUM</span></div>
+    <div class="muted">Keep health notes and send your vet a one-page summary. Available with Premium.</div></div>`}`;
+}
+
+function detail(){
+  const e=EV[S.ev];
+  return `<div class="top"><button class="back" data-go="home">‹ ${e.n} · Archie</button></div>
+  <div class="tabs">${ORDER.map(k=>`<button class="chip ${S.ev===k?"on":""}" data-tab="${k}">${EV[k].n}</button>`).join("")}</div>
+  <div class="seg" style="margin-bottom:10px"><button class="${S.range===7?"on":""}" data-range="7">7 days</button><button class="${S.range===30?"on":""}" data-range="30">30 days</button></div>
+  <div class="card">
+    <div class="big">${e.today}${e.unit} <span class="muted" style="font-size:13px;font-weight:400">today · ${S.range===7?"7":"30"}-day avg ${e.avg}${e.unit}</span></div>
+    ${S.range===7?bars(e,true):bars30(e)}
+    <div class="xl">${S.range===7?["T","F","S","S","M","T","Today"].map(x=>`<span>${x}</span>`).join(""):"<span>Sep 17</span><span>Oct 1</span><span>Today</span>"}</div>
+    ${S.range===30?`<div class="later">30-day view is planned for a later phase.</div>`:""}
+  </div>
+  <button class="link" data-go="vh">▶ Watch today's ${e.n.toLowerCase()} clips in Video History <span>→</span></button>
+  ${["eat","drink"].includes(S.ev)?`<div class="tip">Bowl not in view? Move Furbo so the bowl is visible.</div>`:""}
+  ${isPrem()?`<div class="prem"><div class="hd">Compared with same breed & age <span class="tag">PREMIUM</span></div>
+      <div class="muted">640 Maltipoos aged 2–4 on Furbo · shown every day, even when normal</div>
+      ${["drink","eat","activity"].map(k=>{const x=EV[k];return `<div class="bm"><div class="r"><span>${x.n} (this week)</span><span>${x.bmTxt}</span></div>
+        <div class="scale"><i class="${x.bm==="lo"?"on lo":""}"></i><i class="${x.bm==="mid"?"on":""}"></i><i class="${x.bm==="hi"?"on hi":""}"></i></div>
+        <div class="sl"><span>Less</span><span>Typical</span><span>More</span></div></div>`}).join("")}
+    </div>
+    <div class="prem"><div class="hd">What you can do <span class="tag">PREMIUM</span></div><div style="font-size:13px;line-height:1.45">${e.sug}</div></div>`
+  : `<div class="prem" data-act="upgrade" style="cursor:pointer"><div class="hd">Compared with same breed & age <span class="tag">PREMIUM</span></div>
+      <div class="muted">🔒 See how Archie's ${e.n.toLowerCase()} compares with 640 Maltipoos aged 2–4, plus what to do. Upgrade to Premium.</div></div>`}`;
+}
+
+function vh(){
+  const e=EV[S.ev];
+  return `<div class="top"><button class="back" data-go="detail">‹ Video History</button></div>
+  <div class="chips">${["All","Activity","Bark","Eat","Drink","Potty","Vomit"].map(c=>`<span class="chip ${c===e.n?"on":""}">${c}</span>`).join("")}</div>
+  <div class="muted" style="margin-bottom:8px">Filtered to ${e.n} · today</div>
+  <div class="vh">${["9:12 AM","1:40 PM","6:05 PM"].slice(0, e.today>0?Math.min(3,Math.ceil(e.today)):1).map(t=>`<div class="c"><div class="vid"><span class="play"></span></div><div class="t"><b>${e.n}</b><br>${S.ev==="vomit"?"2:14 PM":t} · Archie</div></div>`).join("")}</div>`;
+}
+
+function log(){
+  return `<div class="top"><button class="back" data-go="home">‹ Archie's health log</button></div>
+  <div class="muted" style="margin-bottom:10px">Your notes and what Furbo detected, in one place</div>
+  <div class="inp"><input id="logNote" placeholder="Symptom, weight, meds…" aria-label="New note"><button class="btn sm" data-act="addLog">Add</button></div>
+  <div class="lbl">Your notes</div>
+  <div class="loglist">${S.notes.map(n=>`<div class="it"><b>${esc(n.d)}</b><span>${esc(n.t)}</span></div>`).join("")}</div>
+  <div class="lbl">Flagged by Furbo</div>
+  <div class="loglist"><div class="it"><b>Oct 16</b><span>Possible vomit, 2:14 PM</span></div><div class="it"><b>Oct 15–16</b><span>Drinking 30% below last 7 days</span></div></div>
+  <div style="margin-top:16px"><button class="btn" data-act="sheet">Generate Vet Brief</button></div>`;
+}
+
+function brief(){
+  const r = {7:"Oct 10 – Oct 16",14:"Oct 3 – Oct 16",30:"Sep 17 – Oct 16"}[S.period];
+  return `<div class="top"><button class="back" data-go="log">‹ Vet Brief · Archie</button></div>
+  <div class="chips"><button class="chip on" data-act="sheet">${r} ▾</button><span class="muted" style="align-self:center">Maltipoo · 3 yrs · 6.8 kg</span></div>
+  <div class="card brief">
+    <div class="sec"><b>Activity</b>Within usual range; typical for breed & age</div>
+    <div class="sec"><b>Bark</b>Avg 15/day, no change</div>
+    <div class="sec"><b>Eat / Drink</b><span class="flag">Drinking ↓30% on Oct 15–16</span>; eating normal</div>
+    <div class="sec"><b>Potty</b>Avg 4/day, no change</div>
+    <div class="sec"><b>Vomit</b><span class="flag">1 possible event, Oct 16 at 2:14 PM</span> (clip link)</div>
+    <div class="sec" style="border:0"><b>Owner notes</b>${S.notes.map(n=>esc(n.t)+" ("+esc(n.d)+")").join("; ")}</div>
+  </div>
+  <div class="muted" style="margin:8px 0 12px">Detected by AI; may miss events off camera</div>
+  <button class="btn" data-act="toast" data-msg="Opens the share sheet with the PDF">Share PDF with vet</button>
+  <div style="height:8px"></div>
+  <button class="btn out" data-act="toast" data-msg="Saves the PDF to your phone">Download</button>`;
+}
+
+function sheet(){
+  if(S.sheet==="period") return `<div class="sheetbg" data-act="close"><div class="sheet" data-stop="1">
+    <h4>Which period should the brief cover?</h4><div class="muted">Pick what your vet needs to see</div>
+    ${[[7,"Last 7 days"],[14,"Last 14 days"],[30,"Last 30 days"]].map(([v,t])=>`<button class="opt ${S.period===v?"on":""}" data-period="${v}">${t}<span class="rb"></span></button>`).join("")}
+    <button class="opt" data-act="toast" data-msg="Opens a date picker">Custom dates…<span class="rb"></span></button>
+    <div style="margin-top:14px"><button class="btn" data-act="makeBrief">Create brief</button></div></div></div>`;
+  if(S.sheet==="upgrade") return `<div class="sheetbg" data-act="close"><div class="sheet" data-stop="1">
+    <h4>Get more from Nanny with Premium</h4>
+    <div style="font-size:13px;line-height:1.5;margin:8px 0 14px">Compare Archie with dogs of the same breed and age, get tips on what to do, and keep a health log you can turn into a Vet Brief.</div>
+    <button class="btn" data-act="goPrem">Try Premium</button><div style="height:8px"></div><button class="btn out" data-act="close">Not now</button></div></div>`;
+  return "";
+}
+
+function render(){
+  const v = {home,detail,vh,log,brief}[S.screen]();
+  $("#screen").innerHTML = v;
+  $("#phone").querySelectorAll(".sheetbg,.toast").forEach(n=>n.remove());
+  if(S.sheet) $("#phone").insertAdjacentHTML("beforeend", sheet());
+  if(S.toast) $("#phone").insertAdjacentHTML("beforeend", `<div class="toast">${esc(S.toast)}</div>`);
+  $("#planStd").classList.toggle("on",!isPrem()); $("#planPrem").classList.toggle("on",isPrem());
+}
+function go(scr){ S.screen=scr; S.sheet=null; render(); $("#screen").scrollTop=0; }
+let tt; function toast(m){ S.toast=m; render(); clearTimeout(tt); tt=setTimeout(()=>{S.toast="";render();},1600); }
+function addNote(id){ const el=document.getElementById(id); const t=(el&&el.value||"").trim(); if(!t){ toast("Type a note first"); return; }
+  S.notes.unshift({d:"Oct 16", t}); toast("Note saved to health log"); }
+
+$("#planStd").onclick=()=>{S.plan="std"; if(["log","brief"].includes(S.screen)) S.screen="home"; render();};
+$("#planPrem").onclick=()=>{S.plan="prem"; render();};
+
+$("#phone").addEventListener("click",(ev)=>{
+  const t=ev.target.closest("[data-pet],[data-ev],[data-tab],[data-range],[data-go],[data-act],[data-period],[data-stop]");
+  if(!t) return;
+  if(t.dataset.stop && !ev.target.closest("[data-act],[data-period]")) return;
+  if(t.dataset.pet){ S.pet=t.dataset.pet; render(); return; }
+  if(t.dataset.ev){ S.ev=t.dataset.ev; S.range=7; go("detail"); return; }
+  if(t.dataset.tab){ S.ev=t.dataset.tab; render(); return; }
+  if(t.dataset.range){ S.range=+t.dataset.range; render(); return; }
+  if(t.dataset.go){ if(t.dataset.go==="log"&&!isPrem()){S.sheet="upgrade";render();return;} go(t.dataset.go); return; }
+  if(t.dataset.period){ S.period=+t.dataset.period; render(); return; }
+  const a=t.dataset.act;
+  if(a==="toast") toast(t.dataset.msg);
+  else if(a==="upgrade"){ S.sheet="upgrade"; render(); }
+  else if(a==="goPrem"){ S.plan="prem"; S.sheet=null; toast("Premium preview on"); }
+  else if(a==="close"){ if(ev.target===t || t.tagName==="BUTTON"){ S.sheet=null; render(); } }
+  else if(a==="sheet"){ S.sheet="period"; render(); }
+  else if(a==="makeBrief"){ S.sheet=null; go("brief"); }
+  else if(a==="addQuick") addNote("quickNote");
+  else if(a==="addLog") addNote("logNote");
+});
+$("#phone").addEventListener("keydown",(ev)=>{ if(ev.key==="Enter"&&ev.target.id==="quickNote") addNote("quickNote"); if(ev.key==="Enter"&&ev.target.id==="logNote") addNote("logNote"); });
+render();
+</script>
+
+</html>
