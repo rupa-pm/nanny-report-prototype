@@ -142,7 +142,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--link);outline-o
       <div class="legend">
         <span><i class="sw"></i>All Nanny users</span>
         <span><i class="sw p"></i>Premium only (red outline)</span>
-        <span><i class="new" style="margin:0">NEW</i>New vs. today's live report</span>
+        <span><i class="new" style="margin:0">NEW</i>Not yet in the production app</span>
       </div>
     </div>
     <div class="ctl">
@@ -244,6 +244,7 @@ function detail(){
     <div class="xl">${S.range===7?["T","F","S","S","M","T","Today"].map(x=>`<span>${x}</span>`).join(""):"<span>Sep 17</span><span>Oct 1</span><span>Today</span>"}</div>
     ${S.range===30?`<div class="later">30-day view is planned for a later phase.</div>`:""}
   </div>
+  ${selfCard(S.ev)}
   <button class="link" data-go="vh">▶ Watch today's ${e.n.toLowerCase()} clips in Video History <span>→</span></button>
   ${["eat","drink"].includes(S.ev)?`<div class="tip">Bowl not in view? Move Furbo so the bowl is visible.</div>`:""}
   ${isPrem()?`<div class="prem"><div class="hd">How Archie's ${NOUN[e.n]} compare${NOUN[e.n].endsWith("s")?"":"s"} <span class="tag">PREMIUM</span></div>
@@ -259,23 +260,63 @@ function detail(){
       <div class="muted">🔒 See how Archie's ${e.n.toLowerCase()} compares with 640 Maltipoos aged 2–4, plus what to do. Upgrade to Premium.</div></div>`}`;
 }
 
+// All users: compared with the pet's own usual
+const SELF = {
+  activity:{sum:"Archie was a bit more active than usual today, mostly after lunch.",
+    rows:[["vs. 7-day average","↑ 4%"],["vs. last Wednesday","↑ 6%"],["Most active","1–3 PM"],["30-day trend","Steady"]]},
+  bark:{sum:"Barking was a little lower than usual today. No long barking spells.",
+    rows:[["vs. 7-day average","↓ 20%"],["vs. last Wednesday","↓ 14%"],["Longest spell","2 min at 11:05 AM"],["30-day trend","Steady"]]},
+  eat:{sum:"Archie ate at his usual times today.",
+    rows:[["vs. 7-day average","≈ same"],["vs. last Wednesday","Same (2×)"],["Usual times","8 AM, 6 PM"],["30-day trend","Steady"]]},
+  drink:{sum:"Archie drank less than usual for the 2nd day in a row, and nothing after 2 PM today.",
+    rows:[["vs. 7-day average","↓ 30%"],["vs. last Wednesday","↓ 25% (4×)"],["Days below usual","2 in a row"],["Usual times","Morning, after walks"]], warn:true},
+  potty:{sum:"Potty breaks are in Archie's usual range.",
+    rows:[["vs. 7-day average","≈ same"],["vs. last Wednesday","Same (4×)"],["Usual times","Morning, evening"],["30-day trend","Steady"]]},
+  vomit:{sum:"First possible vomit in the last 30 days, at 2:14 PM.",
+    rows:[["Last 7 days","0 before today"],["Last 30 days","1 (today)"],["Time","2:14 PM, near the couch"],["Other changes today","Drinking ↓ 30%"]], warn:true},
+};
+function selfCard(k){
+  const x=SELF[k];
+  return `<div class="card" style="margin-top:12px"><div style="display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:14px;margin-bottom:6px">Compared with Archie's usual <span class="new">NEW</span></div>
+    <div style="font-size:13px;line-height:1.45;margin-bottom:6px${x.warn?";color:#9a5a00":""}"><b>${x.sum}</b></div>
+    ${x.rows.map(([a,b])=>`<div style="display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:6px 0;border-top:1px solid var(--line)"><span class="muted" style="font-size:12.5px">${a}</span><b style="text-align:right">${b}</b></div>`).join("")}
+  </div>`;
+}
 const TXT = {lo:"Below typical", mid:"Typical", hi:"Above typical"};
+// Comparisons picked per event: the groups that actually explain differences for that behavior
+const G = {
+  breedAge:["Same breed & age","640 Maltipoos aged 2–4"],
+  age:["Same age","2,310 dogs aged 2–4"],
+  breed:["Same breed","1,180 Maltipoos, all ages"],
+  size:["Same size","4,050 dogs weighing 5–9 kg"],
+  alone:["Same time home alone","3,200 dogs alone 6–8 hrs a day"],
+  weather:["Same local weather","Dogs in your area this week (warm days)"],
+};
+const BENCH = {
+  activity:[["breedAge","mid"],["age","mid"],["size","hi"],["alone","mid"]],
+  bark:[["breedAge","mid"],["breed","lo"],["alone","mid"]],
+  eat:[["breedAge","mid"],["size","mid"],["age","mid"]],
+  drink:[["breedAge","lo"],["size","lo"],["age","lo"],["weather","lo"]],
+  potty:[["breedAge","mid"],["age","mid"],["size","mid"]],
+  vomit:[["breedAge","hi"],["age","hi"],["breed","hi"]],
+};
 function benchRows(e){
-  const p = e.bm; // overall position for this event
-  const size = p==="lo" ? "lo" : p; const age = p; const breed = p==="hi" ? "hi" : p;
-  return [
-    ["Same age", "2,310 dogs aged 2–4", age, TXT[age]],
-    ["Same breed", "1,180 Maltipoos, all ages", breed, TXT[breed]],
-    ["Same size", "4,050 dogs weighing 5–9 kg", size, TXT[size]],
-    ["Same breed & age", "640 Maltipoos aged 2–4", p, TXT[p]],
-  ];
+  const key = Object.keys(EV).find(k=>EV[k]===e);
+  return BENCH[key].map(([g,pos])=>[G[g][0], G[g][1], pos, TXT[pos]]);
 }
 const NOUN = {Activity:"activity", Bark:"barking", Eat:"eating", Drink:"drinking", Potty:"potty breaks", Vomit:"vomiting"};
 function benchSummary(e){
   const n = NOUN[e.n];
-  if(e.bm==="lo") return `Archie drank less than most dogs like him this week: below typical for his age, breed and size.`;
-  if(e.bm==="hi") return `Vomiting is uncommon for dogs like Archie. Watch the clip, and check with your vet if it happens again.`;
-  return `Archie's ${n} ${n.endsWith("s")?"are":"is"} typical for dogs of his age, breed and size this week.`;
+  const S2 = {
+    activity:"Archie's activity is typical for Maltipoos his age. He's a bit more active than other small dogs.",
+    bark:"Archie barks a little less than most Maltipoos, and about the same as dogs left alone for similar hours.",
+    eat:"Archie's eating is typical for dogs of his age, breed and size this week.",
+    drink:"Archie drank less than most dogs like him this week, even with warm weather in your area. Keep an eye on it.",
+    potty:"Archie's potty breaks are typical for dogs of his age, breed and size this week.",
+    vomit:"Vomiting is uncommon for dogs like Archie (about 4% had one this week). Watch the clip, and check with your vet if it happens again.",
+  };
+  const key = Object.keys(EV).find(k=>EV[k]===e);
+  return S2[key] || `Archie's ${n} is typical this week.`;
 }
 function vh(){
   const e=EV[S.ev];
