@@ -246,17 +246,37 @@ function detail(){
   </div>
   <button class="link" data-go="vh">▶ Watch today's ${e.n.toLowerCase()} clips in Video History <span>→</span></button>
   ${["eat","drink"].includes(S.ev)?`<div class="tip">Bowl not in view? Move Furbo so the bowl is visible.</div>`:""}
-  ${isPrem()?`<div class="prem"><div class="hd">Compared with same breed & age <span class="tag">PREMIUM</span></div>
-      <div class="muted">640 Maltipoos aged 2–4 on Furbo · shown every day, even when normal</div>
-      ${["drink","eat","activity"].map(k=>{const x=EV[k];return `<div class="bm"><div class="r"><span>${x.n} (this week)</span><span>${x.bmTxt}</span></div>
-        <div class="scale"><i class="${x.bm==="lo"?"on lo":""}"></i><i class="${x.bm==="mid"?"on":""}"></i><i class="${x.bm==="hi"?"on hi":""}"></i></div>
-        <div class="sl"><span>Less</span><span>Typical</span><span>More</span></div></div>`}).join("")}
+  ${isPrem()?`<div class="prem"><div class="hd">How Archie's ${NOUN[e.n]} compare${NOUN[e.n].endsWith("s")?"":"s"} <span class="tag">PREMIUM</span></div>
+      <div style="font-size:13px;line-height:1.45;margin-bottom:4px"><b>${benchSummary(e)}</b></div>
+      <div class="muted" style="margin-bottom:2px">This week · shown every day, even when normal</div>
+      ${benchRows(e).map(([lbl,grp,pos,txt])=>`<div class="bm"><div class="r"><span>${lbl}</span><span>${txt}</span></div>
+        <div class="muted" style="font-size:11px">${grp}</div>
+        <div class="scale"><i class="${pos==="lo"?"on lo":""}"></i><i class="${pos==="mid"?"on":""}"></i><i class="${pos==="hi"?"on hi":""}"></i></div>
+        <div class="sl"><span>Less</span><span>Typical</span><span>More</span></div></div>`).join("")}
     </div>
     <div class="prem"><div class="hd">What you can do <span class="tag">PREMIUM</span></div><div style="font-size:13px;line-height:1.45">${e.sug}</div></div>`
   : `<div class="prem" data-act="upgrade" style="cursor:pointer"><div class="hd">Compared with same breed & age <span class="tag">PREMIUM</span></div>
       <div class="muted">🔒 See how Archie's ${e.n.toLowerCase()} compares with 640 Maltipoos aged 2–4, plus what to do. Upgrade to Premium.</div></div>`}`;
 }
 
+const TXT = {lo:"Below typical", mid:"Typical", hi:"Above typical"};
+function benchRows(e){
+  const p = e.bm; // overall position for this event
+  const size = p==="lo" ? "lo" : p; const age = p; const breed = p==="hi" ? "hi" : p;
+  return [
+    ["Same age", "2,310 dogs aged 2–4", age, TXT[age]],
+    ["Same breed", "1,180 Maltipoos, all ages", breed, TXT[breed]],
+    ["Same size", "4,050 dogs weighing 5–9 kg", size, TXT[size]],
+    ["Same breed & age", "640 Maltipoos aged 2–4", p, TXT[p]],
+  ];
+}
+const NOUN = {Activity:"activity", Bark:"barking", Eat:"eating", Drink:"drinking", Potty:"potty breaks", Vomit:"vomiting"};
+function benchSummary(e){
+  const n = NOUN[e.n];
+  if(e.bm==="lo") return `Archie drank less than most dogs like him this week: below typical for his age, breed and size.`;
+  if(e.bm==="hi") return `Vomiting is uncommon for dogs like Archie. Watch the clip, and check with your vet if it happens again.`;
+  return `Archie's ${n} ${n.endsWith("s")?"are":"is"} typical for dogs of his age, breed and size this week.`;
+}
 function vh(){
   const e=EV[S.ev];
   return `<div class="top"><button class="back" data-go="detail">‹ Video History</button></div>
