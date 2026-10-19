@@ -67,6 +67,9 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--link);outline-o
 .locked{border:1.5px dashed #b9b4ad;border-radius:16px;background:var(--lockbg);padding:12px;margin-top:14px;color:var(--lockink);cursor:pointer;position:relative}
 .locked .hd{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:14px;margin-bottom:8px;color:#6f6a64}
 .locked .ghost{filter:blur(2.5px);opacity:.55;pointer-events:none;user-select:none}
+.locked .ghost.clear{filter:none;opacity:1}
+.locked .ghost.clear input{background:#E6E3DF;border:1px solid #d6d2cc;color:#8f8a84}
+.locked .ghost.clear input::placeholder{color:#a19c96}
 .locked .cta{display:flex;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid #dcd8d2}
 .locked .cta .ctxt{flex:1;min-width:0;font-size:12.5px;color:#5f5a55;line-height:1.35}
 .unlock{font:700 12px var(--font);color:#fff;background:var(--ai);border:0;border-radius:999px;padding:7px 12px;white-space:nowrap;cursor:pointer}
@@ -312,8 +315,8 @@ const LOCK = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2
 const EXAMPLES = [["Vaccine today?","Got a vaccine today: "],["New food lately?","Switched food to "],["New med or supplement?","Started "],["Weighed today?","Weight: "]];
 function exChips(target){ return `<div class="ex">${EXAMPLES.map(([l,f])=>`<button type="button" data-ex="${esc(f)}" data-target="${target}">${l}</button>`).join("")}</div>`; }
 function lockLine(t, sub){ return `<div class="lock" data-act="upgrade"><span class="lockic">${LOCK}</span><span class="t"><b>${t}</b>${sub||"Premium compares your pets with similar dogs"}</span><button class="unlock" data-act="upgrade">Unlock</button></div>`; }
-function lockedBox(title, ghostHtml, cta){ return `<div class="locked" data-act="upgrade"><div class="hd">${title} <span class="lockpill">${LOCK}LOCKED</span></div>
-  <div class="ghost">${ghostHtml}</div>
+function lockedBox(title, ghostHtml, cta, clear){ return `<div class="locked" data-act="upgrade"><div class="hd">${title} <span class="lockpill">${LOCK}LOCKED</span></div>
+  <div class="ghost${clear?" clear":""}">${ghostHtml}</div>
   <div class="cta"><span class="lockic">${LOCK}</span><span class="ctxt">${cta}</span><button class="unlock" data-act="upgrade">Unlock with Premium</button></div></div>`; }
 
 function insight(){
@@ -368,7 +371,7 @@ function home(){
     <div class="muted" style="margin-top:8px">Not sure what to log? Try:</div>${exChips("quickNote")}
     <div class="rowlink"><span>${S.notes.archie.length+S.notes.luna.length} notes this month</span><button data-go="log">Open log & Vet Brief →</button></div></div>`
   :lockedBox("Health log & Vet Brief", `<div class="inp"><input placeholder="${ph}" tabindex="-1" aria-hidden="true"></div>`,
-    `Log things your vet will ask about, then send a one-page Vet Brief.`).replace('<div class="cta">', `<div style="margin-top:8px;font-size:12px">Things owners log:</div>${exChips("none")}<div class="cta">`)}`;
+    `Log things your vet will ask about, then send a one-page Vet Brief.`, true).replace('<div class="cta">', `<div style="margin-top:8px;font-size:12px">Things owners log:</div>${exChips("none")}<div class="cta">`)}`;
 }
 
 function petSwitch(){
