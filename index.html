@@ -101,6 +101,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--link);outline-o
 .rowlink button{border:0;background:none;font:700 13px var(--font);color:var(--ink);cursor:pointer}
 .tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px}
 .tabs::-webkit-scrollbar{display:none}
+.tabs .chip{white-space:nowrap;flex:none}
 .big{font-size:28px;font-weight:700}
 .chart{display:flex;align-items:flex-end;gap:6px;height:150px;position:relative;margin-top:12px}
 .chart i{flex:1;background:#E3DED6;border-radius:4px 4px 0 0}
@@ -119,6 +120,22 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--link);outline-o
 .sl{display:flex;justify-content:space-between;font-size:10px;color:var(--ink2)}
 .bm{padding:8px 0;border-bottom:1px solid var(--line)}
 .bm:last-child{border:0}
+.track{position:relative;height:8px;border-radius:4px;margin:8px 0 4px;background:linear-gradient(90deg,#EEE9E1,#EEE9E1)}
+.track .mid{position:absolute;left:calc(50% - 1px);top:-3px;width:2px;height:14px;background:#c9c2b7;border-radius:1px}
+.track i{position:absolute;top:-4px;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:var(--ink)}
+.chip.unk{border-style:dashed}
+.unkcard{background:#fff;border-radius:14px;padding:10px;display:flex;gap:10px;align-items:center;margin-top:8px}
+.unkcard .vid{width:84px;height:62px;flex:none;border-radius:10px}
+.unkcard .vid .play{width:24px;height:24px}.unkcard .vid .play:before{border-left-width:8px;border-top-width:5px;border-bottom-width:5px}
+.unkcard .info{flex:1;min-width:0;font-size:12.5px}
+.unkcard .info b{display:block;font-size:13px}
+.tagrow{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.tagrow button{font:700 12px var(--font);border:1.5px solid var(--ink);background:#fff;color:var(--ink);border-radius:999px;padding:4px 11px;cursor:pointer}
+.tagrow button.ghost2{border-color:var(--line);color:var(--ink2);font-weight:500}
+.unknote{display:flex;gap:8px;align-items:flex-start;background:#F2F0EC;border-radius:12px;padding:9px 10px;font-size:12px;line-height:1.4;color:#5f5a55}
+.unknote svg{flex:none;width:16px;height:16px;margin-top:1px}
+.tagline{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid #f0dfa6;font-size:12px;cursor:pointer}
+.tagline b{white-space:nowrap}
 .bm .r{display:flex;justify-content:space-between;font-size:13px;font-weight:700}
 .loglist .it{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
 .loglist .it b{width:62px;flex:none}
@@ -155,7 +172,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--link);outline-o
 <div class="wrap">
   <div class="guide">
     <h1>Nanny Report prototype</h1>
-    <p>Click through the new report. Content is example data for two dogs: Archie (Maltipoo, 3) and Luna (mixed breed, 5).</p>
+    <p>Click through the new report. Content is example data for two pets: Archie (Maltipoo dog, 3) and Teddy (mixed-breed cat, 3).</p>
     <div class="ctl">
       <h2>View as</h2>
       <div class="seg" role="group" aria-label="Plan">
@@ -175,7 +192,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--link);outline-o
     <div class="ctl">
       <h2>Things to try</h2>
       <ol class="try">
-        <li>Switch pets: All pets / Archie / Luna</li>
+        <li>Switch pets: All pets / Archie / Teddy / Unknown</li>
+        <li>Tag the Unknown clips to Archie or Teddy</li>
         <li>Tap an event card, then switch tabs and 7 / 30 days</li>
         <li>Open the clips in Video History</li>
         <li>Add a note, then generate a Vet Brief</li>
@@ -190,20 +208,25 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--link);outline-o
 const S = { plan: "prem", pet: "all", dpet: "archie", screen: "home", ev: "drink", range: 7, period: 14, sheet: null, toast: "",
   notes: {
     archie: [ {d:"Oct 15", t:"Ate less at dinner, seemed tired"}, {d:"Oct 12", t:"Weight 6.8 kg"}, {d:"Oct 10", t:"Started joint supplement"} ],
-    luna: [ {d:"Oct 14", t:"Annual checkup, all normal"}, {d:"Oct 2", t:"Weight 12.4 kg"} ] } };
+    teddy: [ {d:"Oct 14", t:"Annual checkup, all normal"}, {d:"Oct 2", t:"Weight 4.6 kg"} ] },
+  unknown: [ {id:1, ev:"activity", t:"10:42 AM"}, {id:2, ev:"eat", t:"8:05 AM"}, {id:3, ev:"drink", t:"1:20 PM"}, {id:4, ev:"activity", t:"4:55 PM"} ] };
 
 // ---------- Pet profiles ----------
 const PET = {
   archie:{ name:"Archie", he:"he", his:"his", Him:"Him", desc:"Maltipoo · 3 yrs · 6.8 kg", likeHim:"dogs like him" },
-  luna:{ name:"Luna", he:"she", his:"her", Him:"Her", desc:"Mixed breed · 5 yrs · 12.4 kg", likeHim:"dogs like her" },
+  teddy:{ name:"Teddy", he:"he", his:"his", Him:"Him", desc:"Mixed-breed cat · 3 yrs · 4.6 kg", likeHim:"cats like him" },
 };
 const BARK = {n:"Bark", unit:"", days:[16,13,18,15,15,14], today:12, avg:15, warn:false, s:"≈ usual", isNew:false,
-  sug:"Your home is a bit quieter than usual. Nothing to do."};
+  sug:"Fewer barks than usual. Nothing to do."};
+const MEOW = {n:"Meow", unit:"", days:[17,19,18,20,17,19], today:21, avg:18.3, warn:false, s:"≈ usual", isNew:true,
+  sug:"Meowing is in the usual range. Evening meows are often a play or dinner request."};
+const SOUND = {bark:BARK, meow:MEOW};
+const isSnd = (k)=> k==="bark" || k==="meow";
 const EVP = {
   archie:{
     activity:{n:"Activity", unit:"", days:[290,310,280,305,300,295], today:318, avg:305, warn:false, s:"≈ usual", isNew:false,
       sug:"Activity is in a healthy range. Keep the usual walk and play routine."},
-    bark:BARK,
+    bark:BARK, meow:MEOW,
     eat:{n:"Eat", unit:"×", days:[2,2,2,3,2,2], today:2, avg:2.2, warn:false, s:"≈ usual", isNew:true,
       sug:"Eating looks normal for Archie and for Maltipoos his age."},
     drink:{n:"Drink", unit:"×", days:[5,4,5,4,4,4], today:3, avg:4.3, warn:true, s:"↓ 30% vs last 7 days", isNew:true,
@@ -213,22 +236,22 @@ const EVP = {
     vomit:{n:"Vomit", unit:"", days:[0,0,0,0,0,0], today:1, avg:0, warn:true, s:"Possible event 2:14 PM", isNew:true,
       sug:"One possible vomit today. Watch the clip to check. If it happens again within 24 hours, call your vet."}
   },
-  luna:{
-    activity:{n:"Activity", unit:"", days:[250,262,248,255,258,251], today:266, avg:255, warn:false, s:"≈ usual", isNew:false,
-      sug:"Luna's activity is steady. Keep her usual walks."},
-    bark:BARK,
-    eat:{n:"Eat", unit:"×", days:[2,2,2,2,2,2], today:2, avg:2, warn:false, s:"≈ usual", isNew:true,
+  teddy:{
+    activity:{n:"Activity", unit:"", days:[130,142,128,135,138,131], today:146, avg:134, warn:false, s:"≈ usual", isNew:false,
+      sug:"Teddy's activity is healthy. Keep his evening play sessions."},
+    bark:BARK, meow:MEOW,
+    eat:{n:"Eat", unit:"×", days:[3,3,4,3,3,3], today:3, avg:3.2, warn:false, s:"≈ usual", isNew:true,
       sug:"Eating is normal. Nothing to do."},
-    drink:{n:"Drink", unit:"×", days:[6,5,6,6,5,6], today:6, avg:5.7, warn:false, s:"≈ usual", isNew:true,
-      sug:"Drinking is normal for Luna's size, even on warm days."},
-    potty:{n:"Potty", unit:"×", days:[4,4,3,4,4,4], today:4, avg:3.9, warn:false, s:"≈ usual", isNew:true,
-      sug:"Potty breaks are steady. Nothing to do."},
+    drink:{n:"Drink", unit:"×", days:[5,4,5,5,4,5], today:5, avg:4.7, warn:false, s:"≈ usual", isNew:true,
+      sug:"Teddy drinks a healthy amount for a cat. A water fountain can help keep it that way."},
+    potty:{n:"Potty", unit:"×", days:[3,3,3,2,3,3], today:3, avg:2.8, warn:false, s:"≈ usual", isNew:true,
+      sug:"Litter box visits are steady. Nothing to do."},
     vomit:{n:"Vomit", unit:"", days:[0,0,0,0,0,0], today:0, avg:0, warn:false, s:"None this week", isNew:true,
-      sug:"No vomiting this week. Nothing to do."}
+      sug:"No vomiting or hairballs this week. Regular brushing helps keep it that way."}
   }
 };
-const ORDER = ["activity","bark","drink","eat","potty","vomit"];
-const PETS = { all:"All pets", archie:"Archie", luna:"Luna" };
+const ORDER = ["activity","bark","meow","drink","eat","potty","vomit"];
+const PETS = { all:"All pets", archie:"Archie", teddy:"Teddy", unknown:"Unknown" };
 
 // All users: compared with the pet's own usual
 const SELFP = {
@@ -244,56 +267,67 @@ const SELFP = {
     vomit:{sum:"First possible vomit in the last 30 days, at 2:14 PM.",
       rows:[["Last 7 days","0 before today"],["Last 30 days","1 (today)"],["Time","2:14 PM, near the couch"],["Other changes today","Drinking ↓ 30%"]], warn:true},
   },
-  luna:{
-    activity:{sum:"Luna's activity is right in her usual range, with a long play session in the morning.",
-      rows:[["vs. 7-day average","↑ 4%"],["vs. last Wednesday","≈ same"],["Most active","9–11 AM"],["30-day trend","Steady"]]},
-    eat:{sum:"Luna ate at her usual times today.",
-      rows:[["vs. 7-day average","≈ same"],["vs. last Wednesday","Same (2×)"],["Usual times","7 AM, 6 PM"],["30-day trend","Steady"]]},
-    drink:{sum:"Luna drank about as much as usual today.",
-      rows:[["vs. 7-day average","≈ same"],["vs. last Wednesday","Same (6×)"],["Usual times","After walks, evening"],["30-day trend","Steady"]]},
-    potty:{sum:"Potty breaks are in Luna's usual range.",
-      rows:[["vs. 7-day average","≈ same"],["vs. last Wednesday","Same (4×)"],["Usual times","Morning, afternoon"],["30-day trend","Steady"]]},
-    vomit:{sum:"No vomiting detected for Luna in the last 30 days.",
-      rows:[["Last 7 days","0"],["Last 30 days","0"],["Last event","None on record"],["Other changes today","None"]]},
+  teddy:{
+    activity:{sum:"Teddy was a bit more playful than usual, with evening zoomies around 9 PM.",
+      rows:[["vs. 7-day average","↑ 9%"],["vs. last Wednesday","↑ 6%"],["Most active","8–10 PM"],["30-day trend","Steady"]]},
+    eat:{sum:"Teddy had his usual 3 small meals today.",
+      rows:[["vs. 7-day average","≈ same"],["vs. last Wednesday","Same (3×)"],["Usual times","7 AM, 1 PM, 7 PM"],["30-day trend","Steady"]]},
+    drink:{sum:"Teddy drank about as much as usual today.",
+      rows:[["vs. 7-day average","↑ 6%"],["vs. last Wednesday","Same (5×)"],["Usual times","Morning, after meals"],["30-day trend","Steady"]]},
+    potty:{sum:"Litter box visits are in Teddy's usual range.",
+      rows:[["vs. 7-day average","≈ same"],["vs. last Wednesday","Same (3×)"],["Usual times","Morning, night"],["30-day trend","Steady"]]},
+    vomit:{sum:"No vomiting or hairballs detected for Teddy in the last 30 days.",
+      rows:[["Last 7 days","0"],["Last 30 days","0"],["Last event","Sep 9 (hairball)"],["Other changes today","None"]]},
   },
-  home:{sum:"Your home was a little quieter than usual today. No long barking spells.",
-    rows:[["vs. 7-day average","↓ 20%"],["vs. last Wednesday","↓ 14%"],["Longest spell","2 min at 11:05 AM"],["30-day trend","Steady"]]}
+  home:{
+    meow:{sum:"Meowing was a bit above usual today, mostly between 6 and 8 PM.",
+      rows:[["vs. 7-day average","↑ 15%"],["vs. last Wednesday","↑ 11%"],["Busiest time","6–8 PM"],["30-day trend","Steady"]]},
+    bark:{sum:"Your home had fewer barks than usual today. No long barking spells.",
+      rows:[["vs. 7-day average","↓ 20%"],["vs. last Wednesday","↓ 14%"],["Longest spell","2 min at 11:05 AM"],["30-day trend","Steady"]]}
+  }
 };
 
 // Premium: comparison groups picked per event and per pet
-const TXT = {lo:"Below typical", mid:"Typical", hi:"Above typical"};
+const pctTxt = (ev, v)=> ev==="vomit" ? `${v}% had one this week` : (v>=1 ? `${v}% more` : (v<=-1 ? `${-v}% less` : "Same as typical"));
 const GP = {
   archie:{ breedAge:["Same breed & age","640 Maltipoos aged 2–4"], age:["Same age","2,310 dogs aged 2–4"], breed:["Same breed","1,180 Maltipoos, all ages"],
     size:["Same size","4,050 dogs weighing 5–9 kg"], alone:["Same time home alone","3,200 dogs alone 6–8 hrs a day"], weather:["Same local weather","Dogs in your area this week (warm days)"] },
-  luna:{ breedAge:["Mixed breeds, same size & age","910 mixed-breed dogs, 10–15 kg, aged 4–6"], age:["Same age","2,840 dogs aged 4–6"], breed:["Mixed breeds","5,300 mixed-breed dogs, all ages"],
-    size:["Same size","3,620 dogs weighing 10–15 kg"], alone:["Same time home alone","3,200 dogs alone 6–8 hrs a day"], weather:["Same local weather","Dogs in your area this week (warm days)"] },
+  teddy:{ breedAge:["Mixed-breed cats, same age","1,240 mixed-breed cats aged 2–4"], age:["Same age","3,050 cats aged 2–4"], breed:["Mixed-breed cats","6,800 mixed-breed cats, all ages"],
+    size:["Same size","2,780 cats weighing 4–5 kg"], alone:["Same time home alone","1,900 cats alone 6–8 hrs a day"], weather:["Same local weather","Cats in your area this week (warm days)"] },
 };
-const BENCHP = {
-  archie:{ activity:[["breedAge","mid"],["age","mid"],["size","hi"],["alone","mid"]], bark:[["breedAge","mid"],["breed","lo"],["alone","mid"]],
-    eat:[["breedAge","mid"],["size","mid"],["age","mid"]], drink:[["breedAge","lo"],["size","lo"],["age","lo"],["weather","lo"]],
-    potty:[["breedAge","mid"],["age","mid"],["size","mid"]], vomit:[["breedAge","hi"],["age","hi"],["breed","hi"]] },
-  luna:{ activity:[["breedAge","mid"],["age","mid"],["size","mid"],["alone","mid"]], bark:[["breedAge","mid"],["breed","lo"],["alone","mid"]],
-    eat:[["breedAge","mid"],["size","mid"],["age","mid"]], drink:[["breedAge","mid"],["size","mid"],["age","mid"],["weather","mid"]],
-    potty:[["breedAge","mid"],["age","mid"],["size","mid"]], vomit:[["breedAge","mid"],["age","mid"],["size","mid"]] },
+const BENCHP = {  // [group, % difference vs. group average] (vomit: % of group with one this week)
+  archie:{ activity:[["breedAge",3],["age",6],["size",14],["alone",2]],
+    eat:[["breedAge",1],["size",-2],["age",3]], drink:[["breedAge",-22],["size",-25],["age",-19],["weather",-27]],
+    potty:[["breedAge",2],["age",-1],["size",4]], vomit:[["breedAge",4],["age",5],["breed",3]] },
+  teddy:{ activity:[["breedAge",5],["age",8],["size",3],["alone",1]],
+    eat:[["breedAge",0],["size",2],["age",-3]], drink:[["breedAge",4],["size",2],["age",6],["weather",-1]],
+    potty:[["breedAge",1],["age",3],["size",-2]], vomit:[["breedAge",12],["age",10],["size",11]] },
 };
+const HOMEBENCH = {
+  bark:[["Homes with a dog and a cat","1,450 similar homes",-20],["Homes with a small dog","2,900 homes with one small dog",-12],["Same time home alone","980 homes, pets alone 6–8 hrs",-6]],
+  meow:[["Homes with a dog and a cat","1,450 similar homes",9],["Homes with one cat","4,100 single-cat homes",14],["Same time home alone","980 homes, pets alone 6–8 hrs",5]] };
+const HOMESUM = {
+  bark:"Your home barks 20% less than other homes with a dog and a cat, and 12% less than homes with one small dog.",
+  meow:"Your home meows 9% more than other homes with a dog and a cat, mostly in the evening. That's a common time for play or dinner requests." };
 const SUMP = {
-  archie:{ activity:"Archie's activity is typical for Maltipoos his age. He's a bit more active than other small dogs.",
-    eat:"Archie's eating is typical for dogs of his age, breed and size this week.",
-    drink:"Archie drank less than most dogs like him this week, even with warm weather in your area. Keep an eye on it.",
-    potty:"Archie's potty breaks are typical for dogs of his age, breed and size this week.",
-    vomit:"Vomiting is uncommon for dogs like Archie (about 4% had one this week). Watch the clip, and check with your vet if it happens again." },
-  luna:{ activity:"Luna's activity is typical for mid-size dogs her age.",
-    eat:"Luna's eating is typical for mid-size dogs her age this week.",
-    drink:"Luna's drinking is typical for dogs her size, even with warm weather in your area.",
-    potty:"Luna's potty breaks are typical for dogs her size and age.",
-    vomit:"No vomiting this week, which is typical for dogs like Luna." },
+  archie:{ activity:"Archie is 3% more active than Maltipoos his age, and 14% more active than other small dogs.",
+    eat:"Archie eats within 3% of dogs his age, breed and size.",
+    drink:"Archie drank 22% less than Maltipoos his age this week, and 27% less than dogs in your area on warm days. Keep an eye on it.",
+    potty:"Archie's potty breaks are within 4% of dogs his age, breed and size.",
+    vomit:"Only about 4% of Maltipoos aged 2–4 vomited this week. Watch the clip, and check with your vet if it happens again." },
+  teddy:{ activity:"Teddy is 5% more active than mixed-breed cats his age, and 8% more than cats his age overall.",
+    eat:"Teddy eats within 3% of cats his age and size.",
+    drink:"Teddy drinks 4% more than mixed-breed cats his age, a healthy amount for a cat.",
+    potty:"Teddy's litter box visits are within 3% of cats his age and size.",
+    vomit:"About 12% of mixed-breed cats his age vomit or bring up a hairball in a week. Teddy had none." },
 };
-const NOUN = {activity:"activity", bark:"barking", eat:"eating", drink:"drinking", potty:"potty breaks", vomit:"vomiting"};
+const NOUN = {activity:"activity", bark:"barking", meow:"meowing", eat:"eating", drink:"drinking", potty:"potty breaks", vomit:"vomiting"};
 
 const $ = (s)=>document.querySelector(s);
 const esc = (t)=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const isPrem = ()=>S.plan==="prem";
-const logPet = ()=> S.pet==="luna" ? "luna" : (S.pet==="archie" ? "archie" : S.dpet);
+const logPet = ()=> S.pet==="teddy" ? "teddy" : (S.pet==="archie" ? "archie" : S.dpet);
+const EVKEY = {activity:"activity", eat:"eat", drink:"drink", potty:"potty", vomit:"vomit"};
 
 function bars(e, big){
   const vals=[...e.days,e.today]; const max=Math.max(...vals,e.avg,1)*1.15;
@@ -314,32 +348,33 @@ const INFO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-
 const LOCK = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`;
 const EXAMPLES = [["Vaccine today?","Got a vaccine today: "],["New food lately?","Switched food to "],["New med or supplement?","Started "],["Weighed today?","Weight: "]];
 function exChips(target){ return `<div class="ex">${EXAMPLES.map(([l,f])=>`<button type="button" data-ex="${esc(f)}" data-target="${target}">${l}</button>`).join("")}</div>`; }
-function lockLine(t, sub){ return `<div class="lock" data-act="upgrade"><span class="lockic">${LOCK}</span><span class="t"><b>${t}</b>${sub||"Premium compares your pets with similar dogs"}</span><button class="unlock" data-act="upgrade">Unlock</button></div>`; }
+function lockLine(t, sub){ return `<div class="lock" data-act="upgrade"><span class="lockic">${LOCK}</span><span class="t"><b>${t}</b>${sub||"Premium compares your pets with similar pets"}</span><button class="unlock" data-act="upgrade">Unlock</button></div>`; }
 function lockedBox(title, ghostHtml, cta, clear){ return `<div class="locked" data-act="upgrade"><div class="hd">${title} <span class="lockpill">${LOCK}LOCKED</span></div>
   <div class="ghost${clear?" clear":""}">${ghostHtml}</div>
   <div class="cta"><span class="lockic">${LOCK}</span><span class="ctxt">${cta}</span><button class="unlock" data-act="upgrade">Unlock with Premium</button></div></div>`; }
 
 function insight(){
   const head = `<div class="ins"><h4>Health insight <span class="new">NEW</span></h4>`;
-  if(S.pet==="luna") return head+`<div>All looks usual for Luna today. Activity, eating and drinking are in her normal range.</div>
-    ${isPrem()?`<div class="pline"><span class="tag">✦ PREMIUM</span><span>Luna is typical for mid-size mixed-breed dogs aged 4–6 on every event this week.</span></div>`:lockLine("See how Luna compares with dogs her size and age")}</div>`;
+  if(S.pet==="teddy") return head+`<div>All looks usual for Teddy today. Activity, eating and drinking are in his normal range.</div>
+    ${isPrem()?`<div class="pline"><span class="tag">✦ PREMIUM</span><span>Teddy is within 5% of mixed-breed cats aged 2–4 on every event this week.</span></div>`:lockLine("See how Teddy compares with cats his age and size")}</div>`;
   if(S.pet==="archie") return head+`<div>Archie drank <b>30% less</b> than his last 7 days, and had <b>1 possible vomit</b> at 2:14 PM.</div>
-    ${isPrem()?`<div class="pline"><span class="tag">✦ PREMIUM</span><span>That's below typical for Maltipoos aged 2–4. Keep fresh water nearby; if it lasts 3+ days, log it for your vet.</span></div>`:lockLine("See how Archie compares with Maltipoos his age")}</div>`;
+    ${isPrem()?`<div class="pline"><span class="tag">✦ PREMIUM</span><span>That's 22% less than Maltipoos aged 2–4. Keep fresh water nearby; if it lasts 3+ days, log it for your vet.</span></div>`:lockLine("See how Archie compares with Maltipoos his age")}</div>`;
   return head+`<div><b>1 of 2 pets needs a look today.</b></div>
     <div class="petrow"><span class="dot w"></span><span><b>Archie</b> · drank 30% less than usual, 1 possible vomit at 2:14 PM</span></div>
-    <div class="petrow"><span class="dot"></span><span><b>Luna</b> · all usual</span></div>
-    ${isPrem()?`<div class="pline"><span class="tag">✦ PREMIUM</span><span>Archie's drinking is also below typical for Maltipoos aged 2–4. Luna is typical for mid-size dogs her age.</span></div>`:lockLine("See how your pets compare with similar dogs")}</div>`;
+    <div class="petrow"><span class="dot"></span><span><b>Teddy</b> · all usual</span></div>
+    ${S.unknown.length?`<div class="tagline" data-pet="unknown"><span>${S.unknown.length} event${S.unknown.length>1?"s":""} couldn't be matched to a pet</span><b>Tag now →</b></div>`:""}
+    ${isPrem()?`<div class="pline"><span class="tag">✦ PREMIUM</span><span>Archie drank 22% less than Maltipoos his age. Teddy is within 5% of mixed-breed cats his age.</span></div>`:lockLine("See how your pets compare with similar pets")}</div>`;
 }
 
 function evCard(k){
-  if(k==="bark"){ const e=BARK;
-    return `<button class="ev" data-ev="bark"><div class="n">Bark & meow<span class="home">${HOUSE}Whole home</span></div>
+  if(isSnd(k)){ const e=SOUND[k];
+    return `<button class="ev" data-ev="${k}"><div class="n">${e.n}${e.isNew?'<span class="new">NEW</span>':""}<span class="home">${HOUSE}Whole home</span></div>
       <div class="v"><b>${e.today}</b> · avg ${e.avg}</div><div class="s">${S.pet==="all"?"≈ usual":"Not split by pet"}</div>${bars(e,false)}</button>`; }
   if(S.pet==="all"){
     // Sum both pets, but keep any single pet's change visible so a total can't hide it
-    const A=EVP.archie[k], L=EVP.luna[k];
+    const A=EVP.archie[k], L=EVP.teddy[k];
     const sum={...A, days:A.days.map((v,i)=>v+L.days[i]), today:A.today+L.today, avg:Math.round((A.avg+L.avg)*10)/10};
-    const flagged=["archie","luna"].filter(q=>EVP[q][k].warn);
+    const flagged=["archie","teddy"].filter(q=>EVP[q][k].warn);
     sum.warn = flagged.length>0;
     const st = flagged.length ? flagged.map(q=>`${PET[q].name}: ${k==="vomit"?"possible event":"↓ 30%"}`).join(", ") : "≈ usual";
     return `<button class="ev" data-ev="${k}"><div class="n">${A.n}${A.isNew?'<span class="new">NEW</span>':""}</div>
@@ -351,46 +386,57 @@ function evCard(k){
 }
 
 function home(){
-  const lp = S.pet==="all" ? null : PET[S.pet];
-  const ph = lp ? `Add a note about ${lp.name} today…` : "Add a note about Archie or Luna…";
+  const lp = (S.pet==="all"||S.pet==="unknown") ? null : PET[S.pet];
+  const ph = lp ? `Add a note about ${lp.name} today…` : "Add a note about Archie or Teddy…";
   return `<div class="top"><h3>Nanny Report</h3><span class="muted">Oct 16</span></div>
   <div class="days">${["T","F","S","S","M","T","W"].map((d,i)=>`<div class="${i===6?"on":""}">${d}<b>${10+i}</b></div>`).join("")}</div>
   <div class="lbl" style="margin-top:0">Daily Diary</div>
   <div class="vid" data-act="toast" data-msg="Plays the 60-sec Daily Diary"><span class="play"></span></div>
-  <div class="summary"><b>Summary</b> · Archie played after lunch and napped by the window. Luna had a long play session in the morning and rested in the afternoon.</div>
+  <div class="summary"><b>Summary</b> · Archie played after lunch and napped by the window. Teddy watched birds from the window perch and had evening zoomies.</div>
   <div class="lbl">Video Highlights</div>
   <div class="hl">${[1,2,3].map(()=>`<div class="vid" data-act="toast" data-msg="Plays the highlight clip"><span class="play"></span></div>`).join("")}</div>
   <div class="lbl">Health <small>pet filter applies to this section</small></div>
-  <div class="chips">${Object.keys(PETS).map(k=>`<button class="chip ${S.pet===k?"on":""}" data-pet="${k}">${PETS[k]}</button>`).join("")}<span class="new" style="align-self:center">NEW</span></div>
-  ${insight()}
-  <div class="lbl">Today vs. last 7 days <small>${S.pet==="all"?"both pets combined · tap for details":"tap a card for more"}</small></div>
-  <div class="grid">${ORDER.map(evCard).join("")}</div>
-  <div class="muted" style="margin-top:6px">New events (anxiety, licking) arrive as new cards.</div>
+  <div class="chips">${Object.keys(PETS).map(k=>`<button class="chip ${k==="unknown"?"unk":""} ${S.pet===k?"on":""}" data-pet="${k}">${k==="unknown"?`Unknown (${S.unknown.length})`:PETS[k]}</button>`).join("")}<span class="new" style="align-self:center">NEW</span></div>
+  ${S.pet==="unknown" ? unknownView() : insight()}
+  ${S.pet==="unknown" ? "" : `<div class="lbl">Today vs. last 7 days <small>${S.pet==="all"?"both pets combined · tap for details":"tap a card for more"}</small></div>
+  <div class="grid">${ORDER.map(evCard).join("")}<div class="ev" style="border:1.5px dashed var(--line);background:transparent;color:var(--ink2);display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;cursor:default">+ future events<br>(anxiety, licking…)</div></div>
   ${isPrem()?`<div class="prem"><div class="hd">Health log & Vet Brief <span class="tag">✦ PREMIUM</span></div>
     <div class="inp"><input id="quickNote" placeholder="${ph}" aria-label="Quick note"><button class="btn sm" data-act="addQuick">Add</button></div>
     <div class="muted" style="margin-top:8px">Not sure what to log? Try:</div>${exChips("quickNote")}
-    <div class="rowlink"><span>${S.notes.archie.length+S.notes.luna.length} notes this month</span><button data-go="log">Open log & Vet Brief →</button></div></div>`
+    <div class="rowlink"><span>${S.notes.archie.length+S.notes.teddy.length} notes this month</span><button data-go="log">Open log & Vet Brief →</button></div></div>`
   :lockedBox("Health log & Vet Brief", `<div class="inp"><input placeholder="${ph}" tabindex="-1" aria-hidden="true"></div>`,
-    `Log things your vet will ask about, then send a one-page Vet Brief.`, true).replace('<div class="cta">', `<div style="margin-top:8px;font-size:12px">Things owners log:</div>${exChips("none")}<div class="cta">`)}`;
+    `Log things your vet will ask about, then send a one-page Vet Brief.`, true).replace('<div class="cta">', `<div style="margin-top:8px;font-size:12px">Things owners log:</div>${exChips("none")}<div class="cta">`)}`}`;
+}
+
+// Events Furbo saw but Pet ID couldn't match to a pet
+const EVLABEL = {activity:"Activity", eat:"Eating", drink:"Drinking", potty:"Potty", vomit:"Possible vomit"};
+function unknownView(){
+  const head = `<div class="unknote">${INFO}<span><b>Furbo saw a pet but couldn't tell who.</b> Tag these clips so each pet's report stays accurate. Pet ID also learns from your tags.</span></div>`;
+  if(!S.unknown.length) return head + `<div class="card" style="margin-top:8px;font-size:13px"><b>All caught up.</b> Every event today is matched to Archie or Teddy.</div>`;
+  return head + S.unknown.map(u=>`<div class="unkcard"><div class="vid" data-act="toast" data-msg="Plays the clip"><span class="play"></span></div>
+    <div class="info"><b>${EVLABEL[u.ev]}</b><span class="muted">${u.t} · Living room</span>
+      <div class="tagrow"><button data-tag="${u.id}|archie">Archie</button><button data-tag="${u.id}|teddy">Teddy</button><button class="ghost2" data-tag="${u.id}|none">Not my pet</button></div></div></div>`).join("");
 }
 
 function petSwitch(){
-  return `<div class="chips" style="margin-bottom:10px">${["archie","luna"].map(p=>`<button class="chip ${S.dpet===p?"on":""}" data-dpet="${p}">${PET[p].name}</button>`).join("")}</div>`;
+  return `<div class="chips" style="margin-bottom:10px">${["archie","teddy"].map(p=>`<button class="chip ${S.dpet===p?"on":""}" data-dpet="${p}">${PET[p].name}</button>`).join("")}</div>`;
 }
 
 function detail(){
-  const snd = S.ev==="bark";
+  const snd = isSnd(S.ev);
   const p = S.dpet, P = PET[p];
-  const e = snd ? BARK : EVP[p][S.ev];
-  const title = snd ? "Bark & meow · Whole home" : `${e.n} · ${P.name}`;
-  const breedNote = (!snd && p==="luna") ? " · Luna is a mixed breed, so we compare by size and age" : "";
-  const sum = snd ? "Your home barks a little less than most single-dog homes, and about the same as homes where the dog is alone for similar hours." : SUMP[p][S.ev];
-  const rows = (snd ? BENCHP.archie.bark.map(([g,pos])=>[GP.archie[g][0].replace("Same breed & age","Single-dog homes, same breed & age"),GP.archie[g][1],pos,TXT[pos]]) : BENCHP[p][S.ev].map(([g,pos])=>[GP[p][g][0],GP[p][g][1],pos,TXT[pos]]));
-  const cmpTitle = snd ? "How your home's barking compares" : `How ${P.name}'s ${NOUN[S.ev]} compare${NOUN[S.ev].endsWith("s")?"":"s"}`;
+  const e = snd ? SOUND[S.ev] : EVP[p][S.ev];
+  const title = snd ? `${e.n} · Whole home` : `${e.n} · ${P.name}`;
+  const breedNote = (!snd && p==="teddy") ? " · Teddy is a mixed breed, so we compare with mixed-breed cats of the same age and size" : "";
+  const sum = snd ? HOMESUM[S.ev] : SUMP[p][S.ev];
+  const own = e.today;
+  const rows = snd ? HOMEBENCH[S.ev].map(([l,g,v])=>[l,g,v,pctTxt(S.ev,v)])
+    : BENCHP[p][S.ev].map(([g,v])=>[GP[p][g][0],GP[p][g][1], S.ev==="vomit" ? (own>0?30:-30) : v, pctTxt(S.ev,v)]);
+  const cmpTitle = snd ? `How your home's ${NOUN[S.ev]} compares` : `How ${P.name}'s ${NOUN[S.ev]} compare${NOUN[S.ev].endsWith("s")?"":"s"}`;
   return `<div class="top"><button class="back" data-go="home">‹ ${title}</button></div>
   ${(!snd && S.pet==="all") ? petSwitch() : ""}
-  <div class="tabs">${ORDER.map(k=>`<button class="chip ${S.ev===k?"on":""}" data-tab="${k}">${k==="bark"?"Bark & meow":EVP.archie[k].n}</button>`).join("")}</div>
-  ${snd?`<div class="homenote">${INFO}<span><b>Counted for the whole home.</b> Furbo can't tell which pet barked or meowed yet, so the pet filter doesn't apply here.</span></div>`:""}
+  <div class="tabs">${ORDER.map(k=>`<button class="chip ${S.ev===k?"on":""}" data-tab="${k}">${isSnd(k)?SOUND[k].n:EVP.archie[k].n}</button>`).join("")}</div>
+  ${snd?`<div class="homenote">${INFO}<span><b>Counted for the whole home.</b> Furbo can't tell which pet made the sound yet, so the pet filter doesn't apply here.</span></div>`:""}
   <div class="seg" style="margin-bottom:10px"><button class="${S.range===7?"on":""}" data-range="7">7 days</button><button class="${S.range===30?"on":""}" data-range="30">30 days</button></div>
   <div class="card">
     <div class="big">${e.today}${e.unit} <span class="muted" style="font-size:13px;font-weight:400">today · ${S.range===7?"7":"30"}-day avg ${e.avg}${e.unit}</span></div>
@@ -399,24 +445,24 @@ function detail(){
     ${S.range===30?`<div class="later">30-day view is planned for a later phase.</div>`:""}
   </div>
   ${selfCard(snd?"home":p, S.ev)}
-  <button class="link" data-go="vh">▶ Watch today's ${snd?"bark & meow":e.n.toLowerCase()} clips in Video History <span>→</span></button>
+  <button class="link" data-go="vh">▶ Watch today's ${e.n.toLowerCase()} clips in Video History <span>→</span></button>
   ${["eat","drink"].includes(S.ev)?`<div class="tip">Bowl not in view? Move Furbo so the bowl is visible.</div>`:""}
   ${isPrem()?`<div class="prem"><div class="hd">${cmpTitle} <span class="tag">✦ PREMIUM</span></div>
       <div style="font-size:13px;line-height:1.45;margin-bottom:4px"><b>${sum}</b></div>
-      <div class="muted" style="margin-bottom:2px">This week · shown every day, even when normal${snd?" · compared with single-dog homes, since sounds aren't split by pet":breedNote}</div>
+      <div class="muted" style="margin-bottom:2px">This week · shown every day, even when normal${snd?" · compared with homes that have a dog and a cat, since sounds aren't split by pet":breedNote}</div>
       ${rows.map(([lbl,grp,pos,txt])=>`<div class="bm"><div class="r"><span>${lbl}</span><span>${txt}</span></div>
         <div class="muted" style="font-size:11px">${grp}</div>
-        <div class="scale"><i class="${pos==="lo"?"on lo":""}"></i><i class="${pos==="mid"?"on":""}"></i><i class="${pos==="hi"?"on hi":""}"></i></div>
+        <div class="track"><span class="mid"></span><i style="left:${Math.max(4,Math.min(96,(pos+40)/80*100))}%"></i></div>
         <div class="sl"><span>Less</span><span>Typical</span><span>More</span></div></div>`).join("")}
     </div>
     <div class="prem"><div class="hd">What you can do <span class="tag">✦ PREMIUM</span></div><div style="font-size:13px;line-height:1.45">${e.sug}</div></div>`
   : lockedBox(cmpTitle,
-      rows.slice(0,2).map(([lbl])=>`<div class="bm"><div class="r"><span>${lbl}</span><span>Typical</span></div><div class="scale"><i></i><i class="on"></i><i></i></div></div>`).join(""),
-      snd ? `See how your home compares with similar single-dog homes, plus what to do.` : `See how ${P.name} compares with ${p==="luna"?"dogs of the same size and age":"dogs of the same breed, age and size"}, plus what to do.`)}`;
+      rows.slice(0,2).map(([lbl])=>`<div class="bm"><div class="r"><span>${lbl}</span><span>??% vs. avg</span></div><div class="track"><span class="mid"></span><i style="left:50%"></i></div></div>`).join(""),
+      snd ? `See how your home compares with similar homes, plus what to do.` : `See how ${P.name} compares with ${p==="teddy"?"cats of the same age and size":"dogs of the same breed, age and size"}, plus what to do.`)}`;
 }
 
 function selfCard(who, k){
-  const x = who==="home" ? SELFP.home : SELFP[who][k];
+  const x = who==="home" ? SELFP.home[k] : SELFP[who][k];
   const label = who==="home" ? "your home's" : PET[who].name+"'s";
   return `<div class="card" style="margin-top:12px"><div style="display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:14px;margin-bottom:6px">Compared with ${label} usual <span class="new">NEW</span></div>
     <div style="font-size:13px;line-height:1.45;margin-bottom:6px${x.warn?";color:#9a5a00":""}"><b>${x.sum}</b></div>
@@ -425,12 +471,12 @@ function selfCard(who, k){
 }
 
 function vh(){
-  const snd = S.ev==="bark"; const p=S.dpet; const e = snd?BARK:EVP[p][S.ev];
-  const n = snd ? "Bark" : e.n;
+  const snd = isSnd(S.ev); const p=S.dpet; const e = snd?SOUND[S.ev]:EVP[p][S.ev];
+  const n = e.n;
   const count = snd ? 3 : (e.today>0?Math.min(3,Math.ceil(e.today)):0);
   return `<div class="top"><button class="back" data-go="detail">‹ Video History</button></div>
-  <div class="chips">${["All","Activity","Bark","Eat","Drink","Potty","Vomit"].map(c=>`<span class="chip ${c===n?"on":""}">${c}</span>`).join("")}</div>
-  <div class="muted" style="margin-bottom:8px">Filtered to ${snd?"bark & meow · whole home":n+" · "+PET[p].name} · today</div>
+  <div class="chips">${["All","Activity","Bark","Meow","Eat","Drink","Potty","Vomit"].map(c=>`<span class="chip ${c===n?"on":""}">${c}</span>`).join("")}</div>
+  <div class="muted" style="margin-bottom:8px">Filtered to ${snd?n.toLowerCase()+" · whole home":n+" · "+PET[p].name} · today</div>
   ${count===0?`<div class="card muted">No ${n.toLowerCase()} clips for ${PET[p].name} today.</div>`:
   `<div class="vh">${["9:12 AM","1:40 PM","6:05 PM"].slice(0,count).map(t=>`<div class="c"><div class="vid"><span class="play"></span></div><div class="t"><b>${n}</b><br>${S.ev==="vomit"?"2:14 PM":t} · ${snd?"Home":PET[p].name}</div></div>`).join("")}</div>`}`;
 }
@@ -441,7 +487,7 @@ function log(){
     ? `<div class="it"><b>Oct 16</b><span>Possible vomit, 2:14 PM</span></div><div class="it"><b>Oct 15–16</b><span>Drinking 30% below last 7 days</span></div>`
     : `<div class="it"><b>—</b><span>Nothing unusual in the last 30 days</span></div>`;
   return `<div class="top"><button class="back" data-go="home">‹ ${P.name}'s health log</button></div>
-  ${S.pet==="all"?`<div class="chips" style="margin-bottom:10px">${["archie","luna"].map(q=>`<button class="chip ${p===q?"on":""}" data-dpet="${q}">${PET[q].name}</button>`).join("")}</div>`:""}
+  ${S.pet==="all"?`<div class="chips" style="margin-bottom:10px">${["archie","teddy"].map(q=>`<button class="chip ${p===q?"on":""}" data-dpet="${q}">${PET[q].name}</button>`).join("")}</div>`:""}
   <div class="muted" style="margin-bottom:10px">Your notes and what Furbo detected, in one place</div>
   <div class="inp"><input id="logNote" placeholder="Symptom, weight, meds…" aria-label="New note"><button class="btn sm" data-act="addLog">Add</button></div>
   <div class="muted" style="margin-top:8px">Ideas for what to log:</div>${exChips("logNote")}
@@ -456,16 +502,16 @@ function brief(){
   const p = logPet(); const P=PET[p];
   const r = {7:"Oct 10 – Oct 16",14:"Oct 3 – Oct 16",30:"Sep 17 – Oct 16"}[S.period];
   const secs = p==="archie" ? `
-    <div class="sec"><b>Activity</b>Within usual range; typical for breed & age</div>
-    <div class="sec"><b>Bark</b>Whole home: avg 15/day, no change</div>
-    <div class="sec"><b>Eat / Drink</b><span class="flag">Drinking ↓30% on Oct 15–16</span>; eating normal</div>
+    <div class="sec"><b>Activity</b>Within usual range; 3% more active than Maltipoos his age</div>
+    <div class="sec"><b>Bark / Meow</b>Whole home: barks avg 15/day, meows avg 18/day, no change</div>
+    <div class="sec"><b>Eat / Drink</b><span class="flag">Drinking ↓30% on Oct 15–16 (22% below Maltipoos his age)</span>; eating normal</div>
     <div class="sec"><b>Potty</b>Avg 4/day, no change</div>
     <div class="sec"><b>Vomit</b><span class="flag">1 possible event, Oct 16 at 2:14 PM</span> (clip link)</div>` : `
-    <div class="sec"><b>Activity</b>Within usual range; typical for size & age</div>
-    <div class="sec"><b>Bark</b>Whole home: avg 15/day, no change</div>
+    <div class="sec"><b>Activity</b>Within usual range; 5% more active than mixed-breed cats his age</div>
+    <div class="sec"><b>Bark / Meow</b>Whole home: barks avg 15/day, meows avg 18/day, no change</div>
     <div class="sec"><b>Eat / Drink</b>Eating and drinking normal</div>
-    <div class="sec"><b>Potty</b>Avg 4/day, no change</div>
-    <div class="sec"><b>Vomit</b>None detected</div>`;
+    <div class="sec"><b>Potty</b>Litter box avg 3/day, no change</div>
+    <div class="sec"><b>Vomit</b>None detected (last hairball Sep 9)</div>`;
   return `<div class="top"><button class="back" data-go="log">‹ Vet Brief · ${P.name}</button></div>
   <div class="chips"><button class="chip on" data-act="sheet">${r} ▾</button><span class="muted" style="align-self:center">${P.desc}</span></div>
   <div class="card brief">${secs}
@@ -485,7 +531,7 @@ function sheet(){
     <div style="margin-top:14px"><button class="btn" data-act="makeBrief">Create brief</button></div></div></div>`;
   if(S.sheet==="upgrade") return `<div class="sheetbg" data-act="close"><div class="sheet" data-stop="1">
     <h4>Get more from Nanny with Premium</h4>
-    <div style="font-size:13px;line-height:1.5;margin:8px 0 14px">Compare your pets with similar dogs, get tips on what to do, and keep a health log you can turn into a Vet Brief.</div>
+    <div style="font-size:13px;line-height:1.5;margin:8px 0 14px">Compare your pets with similar pets, get tips on what to do, and keep a health log you can turn into a Vet Brief.</div>
     <button class="btn" data-act="goPrem">Try Premium</button><div style="height:8px"></div><button class="btn out" data-act="close">Not now</button></div></div>`;
   return "";
 }
@@ -509,13 +555,16 @@ $("#planPrem").onclick=()=>{S.plan="prem"; render();};
 $("#phone").addEventListener("click",(ev)=>{
   const exb=ev.target.closest("[data-ex]");
   if(exb){ if(!isPrem()){ S.sheet="upgrade"; render(); return; } const el=document.getElementById(exb.dataset.target); if(el){ el.value=exb.dataset.ex; el.focus(); } return; }
+  const tg=ev.target.closest("[data-tag]");
+  if(tg){ const [id,who]=tg.dataset.tag.split("|"); const u=S.unknown.find(x=>String(x.id)===id); S.unknown=S.unknown.filter(x=>String(x.id)!==id);
+    toast(who==="none" ? "Removed. Furbo will learn from this." : `Tagged as ${PET[who].name}. Added to ${PET[who].name}'s report.`); return; }
   const t=ev.target.closest("[data-pet],[data-dpet],[data-ev],[data-tab],[data-range],[data-go],[data-act],[data-period],[data-stop]");
   if(!t) return;
   if(t.dataset.stop && !ev.target.closest("[data-act],[data-period]")) return;
-  if(t.dataset.pet){ S.pet=t.dataset.pet; if(S.pet!=="all") S.dpet=S.pet; render(); return; }
+  if(t.dataset.pet){ S.pet=t.dataset.pet; if(S.pet==="archie"||S.pet==="teddy") S.dpet=S.pet; render(); return; }
   if(t.dataset.dpet){ S.dpet=t.dataset.dpet; render(); return; }
   if(t.dataset.ev){ S.ev=t.dataset.ev; S.range=7;
-    if(S.pet!=="all") S.dpet=S.pet; else S.dpet = EVP.luna[S.ev].warn && !EVP.archie[S.ev].warn ? "luna" : "archie";
+    if(S.pet!=="all") S.dpet=S.pet; else S.dpet = EVP.teddy[S.ev].warn && !EVP.archie[S.ev].warn ? "teddy" : "archie";
     go("detail"); return; }
   if(t.dataset.tab){ S.ev=t.dataset.tab; render(); return; }
   if(t.dataset.range){ S.range=+t.dataset.range; render(); return; }
